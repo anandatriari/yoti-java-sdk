@@ -30,6 +30,7 @@ import com.yoti.api.client.KeyPairSource;
 import com.yoti.api.client.ProfileException;
 import com.yoti.api.client.spi.remote.call.Receipt;
 import com.yoti.api.client.spi.remote.call.aml.RemoteAmlService;
+import com.yoti.api.client.spi.remote.call.docs.YotiDocsService;
 import com.yoti.api.client.spi.remote.call.qrcode.DynamicSharingService;
 import com.yoti.api.client.spi.remote.util.CryptoUtil;
 
@@ -50,6 +51,7 @@ public class SecureYotiClientTest {
     @Mock RemoteAmlService remoteAmlServiceMock;
     @Mock ActivityDetailsFactory activityDetailsFactoryMock;
     @Mock DynamicSharingService sharingServiceMock;
+    @Mock YotiDocsService yotiDocsServiceMock;
 
     @Mock Receipt receiptMock;
     @Mock ActivityDetails activityDetailsMock;
@@ -73,7 +75,7 @@ public class SecureYotiClientTest {
         when(receiptFetcherMock.fetch(eq(encryptedToken), any(KeyPair.class), eq(APP_ID))).thenThrow(profileException);
 
         try {
-            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
             testObj.getActivityDetails(encryptedToken);
         } catch (ProfileException e) {
             assertSame(profileException, e);
@@ -89,7 +91,7 @@ public class SecureYotiClientTest {
         when(activityDetailsFactoryMock.create(eq(receiptMock), any(PrivateKey.class))).thenThrow(profileException);
 
         try {
-            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
             testObj.getActivityDetails(encryptedToken);
         } catch (ProfileException e) {
             assertSame(profileException, e);
@@ -104,7 +106,7 @@ public class SecureYotiClientTest {
         when(receiptFetcherMock.fetch(eq(encryptedToken), any(KeyPair.class), eq(APP_ID))).thenReturn(receiptMock);
         when(activityDetailsFactoryMock.create(eq(receiptMock), any(PrivateKey.class))).thenReturn(activityDetailsMock);
 
-        SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+        SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         ActivityDetails result = testObj.getActivityDetails(encryptedToken);
 
         assertSame(activityDetailsMock, result);
@@ -115,7 +117,7 @@ public class SecureYotiClientTest {
         KeyPairSource badKeyPairSource = new StaticKeyPairSource(true);
 
         try {
-            new SecureYotiClient(APP_ID, badKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            new SecureYotiClient(APP_ID, badKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (InitialisationException e) {
             assertTrue(e.getCause() instanceof IOException);
             assertThat(e.getCause().getMessage(), containsString("Test stream exception"));
@@ -129,7 +131,7 @@ public class SecureYotiClientTest {
         KeyPairSource badKeyPairSource = new StaticKeyPairSource(false);
 
         try {
-            new SecureYotiClient(APP_ID, badKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            new SecureYotiClient(APP_ID, badKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (InitialisationException e) {
             assertTrue(e.getCause() instanceof IOException);
             assertThat(e.getCause().getMessage(), containsString("Test source exception"));
@@ -141,7 +143,7 @@ public class SecureYotiClientTest {
     @Test
     public void constructor_shouldFailWithNullApplicationId() throws Exception {
         try {
-            new SecureYotiClient(null, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            new SecureYotiClient(null, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
             assertThat(e.getMessage(), containsString("Application id"));
             return;
@@ -152,7 +154,7 @@ public class SecureYotiClientTest {
     @Test
     public void constructor_shouldFailWithNullKeyPairSource() throws Exception {
         try {
-            new SecureYotiClient(APP_ID, null, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            new SecureYotiClient(APP_ID, null, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
             assertThat(e.getMessage(), containsString("Key pair source"));
             return;
@@ -163,7 +165,7 @@ public class SecureYotiClientTest {
     @Test
     public void constructor_shouldFailWithNullReceiptFetcher() throws Exception {
         try {
-            new SecureYotiClient(APP_ID, validKeyPairSource, null, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            new SecureYotiClient(APP_ID, validKeyPairSource, null, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
             assertThat(e.getMessage(), containsString("receiptFetcher"));
             return;
@@ -174,7 +176,7 @@ public class SecureYotiClientTest {
     @Test
     public void constructor_shouldFailWithNullActivityDetailsFactory() throws Exception {
         try {
-            new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, null, remoteAmlServiceMock, sharingServiceMock);
+            new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, null, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
             assertThat(e.getMessage(), containsString("activityDetailsFactory"));
             return;
@@ -185,7 +187,7 @@ public class SecureYotiClientTest {
     @Test
     public void constructor_shouldFailWithNullAmlService() throws Exception {
         try {
-            new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, null, sharingServiceMock);
+            new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, null, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
             assertThat(e.getMessage(), containsString("amlService"));
             return;
@@ -198,7 +200,7 @@ public class SecureYotiClientTest {
         KeyPairSource invalidKeyPairSource = new StaticKeyPairSource("no-key-pair-in-file");
 
         try {
-            new SecureYotiClient(APP_ID, invalidKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            new SecureYotiClient(APP_ID, invalidKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (InitialisationException e) {
             assertThat(e.getMessage(), containsString("No key pair found in the provided source"));
             return;
@@ -211,7 +213,7 @@ public class SecureYotiClientTest {
         KeyPairSource invalidKeyPairSource = new StaticKeyPairSource(CryptoUtil.INVALID_KEY_PAIR_PEM);
 
         try {
-            new SecureYotiClient(APP_ID, invalidKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock);
+            new SecureYotiClient(APP_ID, invalidKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (InitialisationException e) {
             assertThat(e.getMessage(), containsString("Cannot load key pair"));
             assertTrue(e.getCause() instanceof PEMException);

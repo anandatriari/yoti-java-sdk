@@ -2,6 +2,9 @@ package com.yoti.api.client;
 
 import com.yoti.api.client.aml.AmlProfile;
 import com.yoti.api.client.aml.AmlResult;
+import com.yoti.api.client.docs.CreateSessionResult;
+import com.yoti.api.client.docs.SessionSpec;
+import com.yoti.api.client.docs.YotiDocsException;
 import com.yoti.api.client.shareurl.DynamicShareException;
 import com.yoti.api.client.shareurl.ShareUrlResult;
 import com.yoti.api.client.shareurl.DynamicScenario;
@@ -57,5 +60,11 @@ public interface YotiClient {
      *             aggregate exception signalling issues during the call
      */
     ShareUrlResult createShareUrl(DynamicScenario dynamicScenario) throws DynamicShareException;
+
+
+
+    CreateSessionResult createYotiDocsSession(SessionSpec sessionSpec) throws YotiDocsException; // FIXME: throw something?
+
+
 
 }

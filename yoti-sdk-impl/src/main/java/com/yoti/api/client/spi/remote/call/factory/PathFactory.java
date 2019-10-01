@@ -33,4 +33,8 @@ public class PathFactory {
         return nanoTime() / 1000;
     }
 
+    public String createNewYotiDocsSessionPath(String appId) {
+        return format(DOCS_SESSION_PATH_TEMPLATE, appId, randomUUID(), createTimestamp());
+    }
+
 }

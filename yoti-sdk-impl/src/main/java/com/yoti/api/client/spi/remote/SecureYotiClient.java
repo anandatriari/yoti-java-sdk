@@ -14,11 +14,15 @@ import com.yoti.api.client.ProfileException;
 import com.yoti.api.client.YotiClient;
 import com.yoti.api.client.aml.AmlProfile;
 import com.yoti.api.client.aml.AmlResult;
+import com.yoti.api.client.docs.CreateSessionResult;
+import com.yoti.api.client.docs.SessionSpec;
+import com.yoti.api.client.docs.YotiDocsException;
+import com.yoti.api.client.shareurl.DynamicScenario;
 import com.yoti.api.client.shareurl.DynamicShareException;
 import com.yoti.api.client.shareurl.ShareUrlResult;
-import com.yoti.api.client.shareurl.DynamicScenario;
 import com.yoti.api.client.spi.remote.call.Receipt;
 import com.yoti.api.client.spi.remote.call.aml.RemoteAmlService;
+import com.yoti.api.client.spi.remote.call.docs.YotiDocsService;
 import com.yoti.api.client.spi.remote.call.qrcode.DynamicSharingService;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -38,6 +42,7 @@ final class SecureYotiClient implements YotiClient {
     private final RemoteAmlService remoteAmlService;
     private final ActivityDetailsFactory activityDetailsFactory;
     private final DynamicSharingService dynamicSharingService;
+    private final YotiDocsService yotiDocsService;
 
     static {
         Security.addProvider(new BouncyCastleProvider());
@@ -48,13 +53,15 @@ final class SecureYotiClient implements YotiClient {
             ReceiptFetcher receiptFetcher,
             ActivityDetailsFactory activityDetailsFactory,
             RemoteAmlService remoteAmlService,
-            DynamicSharingService dynamicSharingService) throws InitialisationException {
+            DynamicSharingService dynamicSharingService,
+            YotiDocsService yotiDocsService) throws InitialisationException {
         this.appId = notNull(applicationId, "Application id");
         this.keyPair = loadKeyPair(notNull(kpSource, "Key pair source"));
         this.receiptFetcher = notNull(receiptFetcher, "receiptFetcher");
         this.remoteAmlService = notNull(remoteAmlService, "amlService");
         this.activityDetailsFactory = notNull(activityDetailsFactory, "activityDetailsFactory");
         this.dynamicSharingService = notNull(dynamicSharingService, "QR Code service");
+        this.yotiDocsService = notNull(yotiDocsService, "YotiDocs service");
     }
 
     @Override
@@ -73,6 +80,12 @@ final class SecureYotiClient implements YotiClient {
     public ShareUrlResult createShareUrl(DynamicScenario dynamicScenario) throws DynamicShareException {
         LOG.debug("Request a share url for a dynamicScenario...");
         return dynamicSharingService.createShareUrl(appId, keyPair, dynamicScenario);
+    }
+
+    @Override
+    public CreateSessionResult createYotiDocsSession(SessionSpec sessionSpec) throws YotiDocsException {
+        LOG.debug("Creating a YotiDocs session...");
+        return yotiDocsService.createSession(appId, keyPair, sessionSpec);
     }
 
     private KeyPair loadKeyPair(KeyPairSource kpSource) throws InitialisationException {
