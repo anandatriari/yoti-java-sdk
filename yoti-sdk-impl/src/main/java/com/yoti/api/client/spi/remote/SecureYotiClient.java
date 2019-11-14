@@ -10,13 +10,15 @@ import com.yoti.api.client.ActivityDetails;
 import com.yoti.api.client.AmlException;
 import com.yoti.api.client.InitialisationException;
 import com.yoti.api.client.KeyPairSource;
+import com.yoti.api.client.Media;
 import com.yoti.api.client.ProfileException;
 import com.yoti.api.client.YotiClient;
 import com.yoti.api.client.aml.AmlProfile;
 import com.yoti.api.client.aml.AmlResult;
-import com.yoti.api.client.docs.CreateSessionResult;
-import com.yoti.api.client.docs.SessionSpec;
+import com.yoti.api.client.docs.session.create.CreateSessionResult;
+import com.yoti.api.client.docs.session.create.SessionSpec;
 import com.yoti.api.client.docs.YotiDocsException;
+import com.yoti.api.client.docs.session.retrieve.YotiDocsSession;
 import com.yoti.api.client.shareurl.DynamicScenario;
 import com.yoti.api.client.shareurl.DynamicShareException;
 import com.yoti.api.client.shareurl.ShareUrlResult;
@@ -86,6 +88,30 @@ final class SecureYotiClient implements YotiClient {
     public CreateSessionResult createYotiDocsSession(SessionSpec sessionSpec) throws YotiDocsException {
         LOG.debug("Creating a YotiDocs session...");
         return yotiDocsService.createSession(appId, keyPair, sessionSpec);
+    }
+
+    @Override
+    public YotiDocsSession getYotiDocsSession(String sessionId) throws YotiDocsException {
+        LOG.debug("Retrieving session '{}'", sessionId);
+        return yotiDocsService.retrieveSession(appId, keyPair, sessionId);
+    }
+
+    @Override
+    public void deleteYotiDocsSession(String sessionId) throws YotiDocsException {
+        LOG.debug("Deleting session '{}'", sessionId);
+        yotiDocsService.deleteSession(appId, keyPair, sessionId);
+    }
+
+    @Override
+    public Media getYotiDocsMedia(String sessionId, String mediaId) throws YotiDocsException {
+        LOG.debug("Deleting media content '{}' in session '{}'", mediaId, sessionId);
+        return yotiDocsService.getMediaContent(appId, keyPair, sessionId, mediaId);
+    }
+
+    @Override
+    public void deleteYotiDocsMedia(String sessionId, String mediaId) throws YotiDocsException {
+        LOG.debug("Deleting media content '{}' in session '{}'", mediaId, sessionId);
+        yotiDocsService.deleteMediaContent(appId, keyPair, sessionId, mediaId);
     }
 
     private KeyPair loadKeyPair(KeyPairSource kpSource) throws InitialisationException {

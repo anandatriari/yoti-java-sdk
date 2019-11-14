@@ -2,9 +2,10 @@ package com.yoti.api.client;
 
 import com.yoti.api.client.aml.AmlProfile;
 import com.yoti.api.client.aml.AmlResult;
-import com.yoti.api.client.docs.CreateSessionResult;
-import com.yoti.api.client.docs.SessionSpec;
+import com.yoti.api.client.docs.session.create.CreateSessionResult;
+import com.yoti.api.client.docs.session.create.SessionSpec;
 import com.yoti.api.client.docs.YotiDocsException;
+import com.yoti.api.client.docs.session.retrieve.YotiDocsSession;
 import com.yoti.api.client.shareurl.DynamicShareException;
 import com.yoti.api.client.shareurl.ShareUrlResult;
 import com.yoti.api.client.shareurl.DynamicScenario;
@@ -61,10 +62,52 @@ public interface YotiClient {
      */
     ShareUrlResult createShareUrl(DynamicScenario dynamicScenario) throws DynamicShareException;
 
+    /**
+     * Creates a Yoti Doc Scan session using the supplied session specification
+     *
+     * @param sessionSpec the Doc Scan session specification
+     * @return {@link CreateSessionResult} the session creation result
+     * @throws YotiDocsException
+     */
+    CreateSessionResult createYotiDocsSession(SessionSpec sessionSpec) throws YotiDocsException;
 
+    /**
+     * Retrieves the state of a previously created Yoti Doc Scan session
+     *
+     * @param sessionId the session ID
+     * @return {@link YotiDocsSession} the session state
+     * @throws YotiDocsException
+     */
+    YotiDocsSession getYotiDocsSession(String sessionId) throws YotiDocsException;
 
-    CreateSessionResult createYotiDocsSession(SessionSpec sessionSpec) throws YotiDocsException; // FIXME: throw something?
+    /**
+     * Deletes a previously created Yoti Doc Scan session and all
+     * of its related resources
+     *
+     * @param sessionId the session ID
+     * @throws YotiDocsException
+     */
+    void deleteYotiDocsSession(String sessionId) throws YotiDocsException;
 
+    /**
+     * Retrieves media related to a Yoti Doc Scan session based
+     * on the supplied media ID
+     *
+     * @param sessionId the session ID
+     * @param mediaId the media ID
+     * @return {@link Media} the media
+     * @throws YotiDocsException
+     */
+    Media getYotiDocsMedia(String sessionId, String mediaId) throws YotiDocsException;
 
+    /**
+     * Deletes media related to a Yoti Doc Scan session based
+     * on the supplied media ID
+     *
+     * @param sessionId the session ID
+     * @param mediaId the media ID
+     * @throws YotiDocsException
+     */
+    void deleteYotiDocsMedia(String sessionId, String mediaId) throws YotiDocsException;
 
 }

@@ -29,12 +29,20 @@ public class PathFactory {
         return unsignedPathFactory.createDynamicSharingPath(appId) + createSignatureParams();
     }
 
-    protected long createTimestamp() {
-        return nanoTime() / 1000;
+    public String createNewYotiDocsSessionPath(String appId) {
+        return unsignedPathFactory.createNewYotiDocsSessionPath(appId) + createSignatureParams();
     }
 
-    public String createNewYotiDocsSessionPath(String appId) {
-        return format(DOCS_SESSION_PATH_TEMPLATE, appId, randomUUID(), createTimestamp());
+    public String createGetYotiDocsSessionPath(String appId, String sessionId) {
+        return unsignedPathFactory.createYotiDocsSessionPath(appId, sessionId) + createSignatureParams();
+    }
+
+    public String createMediaContentPath(String appId, String sessionId, String mediaId) {
+        return unsignedPathFactory.createMediaContentPath(appId, sessionId, mediaId);
+    }
+
+    protected long createTimestamp() {
+        return nanoTime() / 1000;
     }
 
 }

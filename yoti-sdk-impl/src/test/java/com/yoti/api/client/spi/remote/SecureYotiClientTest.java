@@ -13,9 +13,7 @@ import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -28,6 +26,8 @@ import com.yoti.api.client.ActivityDetails;
 import com.yoti.api.client.InitialisationException;
 import com.yoti.api.client.KeyPairSource;
 import com.yoti.api.client.ProfileException;
+import com.yoti.api.client.docs.YotiDocsException;
+import com.yoti.api.client.docs.session.create.SessionSpec;
 import com.yoti.api.client.spi.remote.call.Receipt;
 import com.yoti.api.client.spi.remote.call.aml.RemoteAmlService;
 import com.yoti.api.client.spi.remote.call.docs.YotiDocsService;
@@ -46,6 +46,8 @@ public class SecureYotiClientTest {
 
     private static final String TOKEN = "test-token-test-test-test";
     private static final String APP_ID = "appId";
+    private static final String SOME_SESSION_ID = "someSessionId";
+    private static final String SOME_MEDIA_ID = "someMediaId";
 
     @Mock ReceiptFetcher receiptFetcherMock;
     @Mock RemoteAmlService remoteAmlServiceMock;
@@ -55,6 +57,7 @@ public class SecureYotiClientTest {
 
     @Mock Receipt receiptMock;
     @Mock ActivityDetails activityDetailsMock;
+    @Mock SessionSpec sessionSpecMock;
     String encryptedToken;
     KeyPairSource validKeyPairSource;
     byte[] validReceiptKey;
@@ -113,7 +116,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWhenStreamExceptionLoadingKeys() throws Exception {
+    public void constructor_shouldFailWhenStreamExceptionLoadingKeys() {
         KeyPairSource badKeyPairSource = new StaticKeyPairSource(true);
 
         try {
@@ -127,7 +130,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWhenKeyPairSourceExceptionLoadingKeys() throws Exception {
+    public void constructor_shouldFailWhenKeyPairSourceExceptionLoadingKeys() {
         KeyPairSource badKeyPairSource = new StaticKeyPairSource(false);
 
         try {
@@ -141,7 +144,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWithNullApplicationId() throws Exception {
+    public void constructor_shouldFailWithNullApplicationId() {
         try {
             new SecureYotiClient(null, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
@@ -152,7 +155,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWithNullKeyPairSource() throws Exception {
+    public void constructor_shouldFailWithNullKeyPairSource() {
         try {
             new SecureYotiClient(APP_ID, null, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
@@ -163,7 +166,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWithNullReceiptFetcher() throws Exception {
+    public void constructor_shouldFailWithNullReceiptFetcher() {
         try {
             new SecureYotiClient(APP_ID, validKeyPairSource, null, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
@@ -174,7 +177,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWithNullActivityDetailsFactory() throws Exception {
+    public void constructor_shouldFailWithNullActivityDetailsFactory() {
         try {
             new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, null, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
@@ -185,7 +188,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWithNullAmlService() throws Exception {
+    public void constructor_shouldFailWithNullAmlService() {
         try {
             new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, null, sharingServiceMock, yotiDocsServiceMock);
         } catch (IllegalArgumentException e) {
@@ -196,7 +199,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWithNoKeyPair() throws Exception {
+    public void constructor_shouldFailWithNoKeyPair() {
         KeyPairSource invalidKeyPairSource = new StaticKeyPairSource("no-key-pair-in-file");
 
         try {
@@ -209,7 +212,7 @@ public class SecureYotiClientTest {
     }
 
     @Test
-    public void constructor_shouldFailWithInvalidKeyPair() throws Exception {
+    public void constructor_shouldFailWithInvalidKeyPair() {
         KeyPairSource invalidKeyPairSource = new StaticKeyPairSource(CryptoUtil.INVALID_KEY_PAIR_PEM);
 
         try {
@@ -220,6 +223,86 @@ public class SecureYotiClientTest {
             return;
         }
         fail("Expected an Exception");
+    }
+
+    @Test
+    public void createYotiDocsSession_shouldFailWithExceptionFromYotiDocsService() throws Exception {
+        YotiDocsException original = new YotiDocsException("Test exception");
+
+        when(yotiDocsServiceMock.createSession(eq(APP_ID), any(KeyPair.class), eq(sessionSpecMock))).thenThrow(original);
+
+        try {
+            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
+            testObj.createYotiDocsSession(sessionSpecMock);
+        } catch (YotiDocsException thrown) {
+            assertSame(thrown, original);
+            return;
+        }
+        fail("Expected an exception");
+    }
+
+    @Test
+    public void getYotiDocsSession_shouldFailWithExceptionFromYotiDocsService() throws Exception {
+        YotiDocsException original = new YotiDocsException("Test exception");
+
+        when(yotiDocsServiceMock.retrieveSession(eq(APP_ID), any(KeyPair.class), eq(SOME_SESSION_ID))).thenThrow(original);
+
+        try {
+            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
+            testObj.getYotiDocsSession(SOME_SESSION_ID);
+        } catch (YotiDocsException thrown) {
+            assertSame(thrown, original);
+            return;
+        }
+        fail("Expected an exception");
+    }
+
+    @Test
+    public void getYotiDocsMedia_shouldFailWithExceptionFromYotiDocsService() throws Exception {
+        YotiDocsException original = new YotiDocsException("Test exception");
+
+        when(yotiDocsServiceMock.getMediaContent(eq(APP_ID), any(KeyPair.class), eq(SOME_SESSION_ID), eq(SOME_MEDIA_ID))).thenThrow(original);
+
+        try {
+            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
+            testObj.getYotiDocsMedia(SOME_SESSION_ID, SOME_MEDIA_ID);
+        } catch (YotiDocsException thrown) {
+            assertSame(original, thrown);
+            return;
+        }
+        fail("Expected an exception");
+    }
+
+    @Test
+    public void deleteYotiDocsMedia_shouldFailWithExceptionFromYotiDocsService() throws Exception {
+        YotiDocsException original = new YotiDocsException("Test exception");
+
+        doThrow(original).when(yotiDocsServiceMock).deleteMediaContent(eq(APP_ID), any(KeyPair.class), eq(SOME_SESSION_ID), eq(SOME_MEDIA_ID));
+
+        try {
+            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
+            testObj.deleteYotiDocsMedia(SOME_SESSION_ID, SOME_MEDIA_ID);
+        } catch (YotiDocsException thrown) {
+            assertSame(thrown, original);
+            return;
+        }
+        fail("Expected an exception");
+    }
+
+    @Test
+    public void deleteYotiDocsSession_shouldFailWithExceptionFromYotiDocsService() throws Exception {
+        YotiDocsException original = new YotiDocsException("Test exception");
+
+        doThrow(original).when(yotiDocsServiceMock).deleteSession(eq(APP_ID), any(KeyPair.class), eq(SOME_SESSION_ID));
+
+        try {
+            SecureYotiClient testObj = new SecureYotiClient(APP_ID, validKeyPairSource, receiptFetcherMock, activityDetailsFactoryMock, remoteAmlServiceMock, sharingServiceMock, yotiDocsServiceMock);
+            testObj.deleteYotiDocsSession(SOME_SESSION_ID);
+        } catch (YotiDocsException thrown) {
+            assertSame(thrown, original);
+            return;
+        }
+        fail("Expected an exception");
     }
 
     private static class StaticKeyPairSource implements KeyPairSource {
